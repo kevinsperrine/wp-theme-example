@@ -1,7 +1,126 @@
-# WordPress Example Theme
+# WordPress Example Theme=
+
+## Code Structure
+
+```
+themeDirectory/
+    /css
+    /js
+        /vendor
+    /img
+    /scss
+    /src
+        /Namespace
+            /ThemeName
+                ThemeName.php
+    /tests
+    bootstrap.php
+    404.php
+    archive.php
+    etc.php
+    etc.php
+    README.md
+```
+
+All themes should follow this directory structure, and be named using PSR-2
+naming conventions. If you're writing for PHP 5.3+ then use namespaces, and
+build a directory structure around those namespaces to enable use of a PSR-0
+autoloader function. For example, if we're writing a plugin to create a custom
+post type of Books for use in the WordPress admin, the class may look like this:
+
+### Example PHP 5.3 Class
+```
+<?php
+
+namespace KevinSPerrine\CustomTheme;
+
+use KevinSPerrine\Facade\WordPress;
+
+class CustomTheme
+{
+    public function __construct(WordPress $facade = null)
+    {
+
+    }
+}
+```
+
+However, if you're writing for PHP < 5.3, then the structure stays the same, but the classes get altered slightly to account for PHP's lack of namespaces in older versions.
+
+### Example PHP 5.2 Class
+```
+<?php
+
+class KevinSPerrine_CustomTheme_CustomTheme
+{
+    public function __construct(KevinSPerrine_Facade_WordPress $facade = null)
+    {
+
+    }
+}
+```
+
+In either case, the appropriate directory structure is `/src/KevinSPerrine/CustomTheme/CustomTheme.php`.
+
+The Theme class should be initialized in the `functions.php` along a custom autoloader, and other constant declarations.
+
+### Example functions.php
+```
+<?php
+
+function CustomThemeAutoloader($className)
+{
+    $paths = array(
+        'src/'
+    );
+
+    if (stripos($className, "KevinSPerrine") === false) {
+        return;
+    }
+
+    foreach ($paths as $path) {
+        $className = ltrim($className, '\\');
+        $fileName  = '';
+        $namespace = '';
+        if ($lastNsPos = strrpos($className, '\\')) {
+            $namespace = substr($className, 0, $lastNsPos);
+            $className = substr($className, $lastNsPos + 1);
+            $fileName  = str_replace('\\', DIRECTORY_SEPARATOR, $namespace) . DIRECTORY_SEPARATOR;
+        }
+
+        $fileName .= dirname(__FILE__) . DIRECTORY_SEPARATOR . $path . str_replace('_', DIRECTORY_SEPARATOR, $className) . '.php';
+
+        if (file_exists($fileName)) {
+            require $fileName;
+        }
+    }
+}
+
+spl_autoload_register('CustomThemeAutoloader');
+
+global $CustomTheme;
+
+$CustomTheme = new KevinSPerrine_CustomTheme_CustomTheme(); // PHP 5.2
+// $CustomTheme = new KevinSPerrine\CustomTheme\CustomTheme(); // PHP 5.3
+
+$CustomTheme->initialize();
+```
+
+## Styleguide
+All PHP must follow PSR-2. The full styleguide can be be found [here](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-2-coding-style-guide.md), but a few of these are:
+
+* Code MUST use 4 spaces for indenting, not tabs.
+* There MUST NOT be a hard limit on line length; the soft limit MUST be 120 characters; lines SHOULD be 80 characters or less.
+* There MUST be one blank line after the namespace declaration, and there MUST be one blank line after the block of use declarations.
+* Opening braces for classes MUST go on the next line, and closing braces MUST go on the next line after the body.
+* Opening braces for methods MUST go on the next line, and closing braces MUST go on the next line after the body.
+* Visibility MUST be declared on all properties and methods; abstract and final MUST be declared before the visibility; static MUST be declared after the visibility.
+* Control structure keywords MUST have one space after them; method and function calls MUST NOT.
+* Opening braces for control structures MUST go on the same line, and closing braces MUST go on the next line after the body.
+* Opening parentheses for control structures MUST NOT have a space after them, and closing parentheses for control structures MUST NOT have a space before.
+
 
 ## Based on HTML5 Boilerplate for Wordpress
-
 This theme is built on the [HTML5 Boilerplate](http://html5boilerplate.com/) by Paul Irish and Divya Manian. The sole purpose of this theme is to save developers the time it takes to apply the HTML5 Boilerplate to WordPress. The "HTML5 Boilerplate" name is used with permission from Paul Irish.
 
 The layout is based on Bruce Lawson's [Designing a Blog with HTML5](http://html5doctor.com/designing-a-blog-with-html5/)
