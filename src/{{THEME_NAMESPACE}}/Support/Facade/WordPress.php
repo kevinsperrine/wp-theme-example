@@ -12,7 +12,7 @@
 * @license
 * @link
 */
-class C3_Facade_WordPress
+class C3_Support_Facade_WordPress
 {
     /**
      * Magic __call method that creates a facade for globalwordpress functions.

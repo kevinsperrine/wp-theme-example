@@ -9,7 +9,7 @@ class {{THEME_NAMESPACE}}_{{THEME_NAME}}_{{THEME_NAME}}
     public function __construct(WordPress $facade = null)
     {
         if (! $facade) {
-            $facade = new C3_Facade_WordPress();
+            $facade = new C3_Support_Facade_WordPress();
         }
 
         $this->wp = $facade;
@@ -31,7 +31,7 @@ class {{THEME_NAMESPACE}}_{{THEME_NAME}}_{{THEME_NAME}}
 
         $this->wp->add_action('wp_enqueue_scripts', array($this, 'enqueueScripts'));
         $this->wp->add_action('wp_enqueue_scripts', array($this, 'enqueueStyles'));
-        $this->wp->add_action('after_setup_theme', array( $this, 'initialize' ));
+        $this->wp->add_action('after_setup_theme', array($this, 'initialize'));
         $this->wp->add_action('widgets_init', array($this, 'registerSidebars'));
 
         // remove the admin bar
@@ -128,6 +128,37 @@ class {{THEME_NAMESPACE}}_{{THEME_NAME}}_{{THEME_NAME}}
             false,
             null
         );
+    }
+
+    public function featuredImageUrl()
+    {
+        $postId = $this->wp->post()->ID;
+        if ($this->wp->has_post_thumbnail($postId)) {
+            $image = $this->wp->wp_get_attachment_image_src(
+                $this->wp->get_post_thumbnail_id($postId),
+                'single-post-thumbnail'
+            );
+            echo $image[0];
+        }
+    }
+
+    public function getVersionedAssetUrl($filepath = '')
+    {
+        $url = $this->getAssetUrl($filepath);
+
+        // explode the url to get the themeDir/partial/path/to/file.ext
+        $temp = explode("wp-content/themes/", $url);
+
+        // combine the partial path with the theme root to get the full path.
+        $fullFilePath = $this->wp->get_theme_root() . "/" . $temp[1];
+
+        // get the modified time.
+        $version = filemtime($fullFilePath);
+
+        // create the versioned url
+        $versionedUrl = preg_replace("/^(.+)\.(js|css|png|jpg|gif)/", "$1.{$version}.$2", $url);
+
+        return $versionedUrl;
     }
 
     public function getAssetUrl($filePath = '')
